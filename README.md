@@ -4,7 +4,7 @@
 [![DOI](https://zenodo.org/badge/1254341248.svg)](https://doi.org/10.5281/zenodo.20461774)
 
 ## 🎬 자율주행 실증 데모 (Autonomous Driving in Action)
-![자율주행 실증 영상](./media/2026-05-29_자율주행_개선.mp4)
+https://github.com/akffkdzkdngmrdn87/AI-Guide-Dog_RPI4_Autonomous/blob/main/media/2026-05-29_자율주행_개선.mp4?raw=true
 
 ## 1. 프로젝트 일러두기 (Project Notice)
 
