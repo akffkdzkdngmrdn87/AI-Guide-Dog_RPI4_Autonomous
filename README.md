@@ -4,7 +4,7 @@
 [![DOI](https://zenodo.org/badge/1254341248.svg)](https://doi.org/10.5281/zenodo.20461774)
 
 ## 🎬 자율주행 실증 데모 (Autonomous Driving in Action)
-[![자율주행 영상 시청하기](https://img.shields.io/badge/▶_자율주행_실증_데모_영상_시청하기-000000?style=for-the-badge&logo=github)](./media/2026-05-29_자율주행_개선.mp4)
+<video src="https://raw.githubusercontent.com/akffkdzkdngmrdn87/AI-Guide-Dog_RPI4_Autonomous/main/media/2026-05-29_자율주행_개선.mp4" controls="controls" width="100%" muted="muted"></video>
 
 ## 1. 프로젝트 일러두기 (Project Notice)
 
