@@ -4,7 +4,8 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.xxxxxxx.svg)](https://doi.org/10.5281/zenodo.xxxxxxx)
 *(※ 위 배지는 Zenodo에서 발급받은 실제 DOI 링크로 변경하여 사용하십시오.)*
 
-![자율주행 실증 테스트 영상](./media/2026-05-29_자율주행_개선.mp4)
+## 🎬 자율주행 실증 데모 (Autonomous Driving in Action)
+<video src="./media/2026-05-29_자율주행_개선.mp4" controls="controls" width="100%" muted="muted"></video>
 
 ## 1. 프로젝트 일러두기 (Project Notice)
 
