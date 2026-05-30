@@ -4,6 +4,8 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.xxxxxxx.svg)](https://doi.org/10.5281/zenodo.xxxxxxx)
 *(※ 위 배지는 Zenodo에서 발급받은 실제 DOI 링크로 변경하여 사용하십시오.)*
 
+![자율주행 실증 테스트 영상](./media/2026-05-29_자율주행_개선.mp4)
+
 ## 1. 프로젝트 일러두기 (Project Notice)
 
 * **개발 목적:** 본 프로젝트는 상용화 목적이 아닌, 1인 연구 주도의 엣지(Edge) 인공지능 기반 자율주행 및 다중 센서 융합 기술의 실증(PoC, Proof of Concept)을 목적으로 진행되었습니다.
