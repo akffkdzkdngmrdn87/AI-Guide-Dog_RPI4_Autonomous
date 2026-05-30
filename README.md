@@ -1,4 +1,4 @@
-# Autonomous Guide Dog Robot (자율주행 맹도견 로봇 시스템)
+# Autonomous Guide Dog Robot
 **ROS 2 Multi-modal Sensor Fusion & End-to-End Autonomous Driving on Edge Device**
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.xxxxxxx.svg)](https://doi.org/10.5281/zenodo.xxxxxxx)
