@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autonomous Guide Dog Robot — j2w</title>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* =============================================
+           MIT DARK ACADEMIC THEME
+           Base: Deep Forest Warm  |  Accent: MIT Crimson
+        ============================================= */
+        :root {
+            --bg:            #0A0D08;
+            --surface:       #111509;
+            --surface-light: #181E0D;
+            --mit-red:       #A31F34;
+            --mit-red-light: #C62440;
+            --gold:          #C9A84C;
+            --blue-hi:       #4A7CFF;
+            --success:       #2DBE6C;
+            --warning:       #E09319;
+            --danger:        #D94040;
+            --text:          #EEF2E6;
+            --text-muted:    #8A9E78;
+            --border:        #22300F;
+            --border-light:  #2E4015;
+            --font:          'IBM Plex Sans', 'IBM Plex Sans KR', sans-serif;
+            --mono:          'IBM Plex Mono', monospace;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font);
+            display: flex; flex-direction: column; align-items: center;
+            padding: 48px 12px; gap: 64px; overflow-x: hidden;
+        }
+
+        /* ── Slide Shell ── */
+        .slide {
+            width: 1280px; height: 720px;
+            background: var(--surface);
+            border-radius: 4px;
+            box-shadow: 0 0 0 1px var(--border), 0 24px 60px -8px rgba(0,0,0,0.95);
+            overflow: hidden; position: relative;
+            display: flex; flex-direction: column;
+            padding: 32px 44px;
+            cursor: pointer;
+            transition: box-shadow 0.3s;
+        }
+        .slide:hover { box-shadow: 0 0 0 1px var(--mit-red), 0 24px 60px -8px rgba(163,31,52,0.2); }
+        /* 상단 레드 액센트 바 */
+        .slide::before {
+            content: '';
+            position: absolute; top: 0; left: 0; right: 0; height: 4px;
+            background: linear-gradient(90deg, var(--mit-red) 0%, var(--gold) 60%, transparent 100%);
+        }
+
+        /* ── Header ── */
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding-bottom: 10px; margin-bottom: 16px;
+            border-bottom: 1px solid var(--border-light);
+            z-index: 1;
+        }
+        .header-left { display: flex; align-items: baseline; gap: 16px; }
+        .slide-label {
+            font-family: var(--mono); font-size: 13px; font-weight: 600;
+            color: var(--mit-red); letter-spacing: 2px; text-transform: uppercase;
+        }
+        .header h2 { font-size: 36px; font-weight: 700; color: var(--text); letter-spacing: -0.5px; }
+        .slide-num {
+            font-family: var(--mono); font-size: 22px; font-weight: 700;
+            color: var(--text-muted); border: 1px solid var(--border-light);
+            padding: 4px 12px; border-radius: 3px;
+        }
+
+        /* ── Content Layout ── */
+        .content { display: flex; gap: 20px; flex-grow: 1; z-index: 1; height: calc(100% - 72px); }
+        .col { flex: 1; display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+
+        /* ── Cards ── */
+        .card {
+            background: var(--surface-light);
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--mit-red);
+            border-radius: 3px;
+            padding: 22px 28px;
+            display: flex; flex-direction: column; justify-content: center;
+            height: 100%; overflow: hidden !important;
+        }
+        .card.blue-accent { border-left-color: var(--blue-hi); }
+        .card.gold-accent  { border-left-color: var(--gold); }
+        .card.green-accent { border-left-color: var(--success); }
+        .card h3 {
+            font-size: 28px; font-weight: 700; color: var(--text);
+            margin-bottom: 16px; display: flex; align-items: center; gap: 12px;
+        }
+        .card h3 i { color: var(--mit-red); font-size: 26px; }
+        .card.blue-accent  h3 i { color: var(--blue-hi); }
+        .card.gold-accent  h3 i { color: var(--gold); }
+        .card.green-accent h3 i { color: var(--success); }
+        .card p  { color: var(--text-muted); line-height: 1.65; font-weight: 400; word-break: keep-all; font-size: 23px; }
+        .card li { color: var(--text-muted); line-height: 1.6;  font-weight: 400; word-break: keep-all; font-size: 23px; margin-bottom: 16px; }
+        .card ul { padding-left: 22px; margin-top: 10px; }
+
+        /* ── Title Slide ── */
+        .title-slide {
+            justify-content: center; align-items: flex-start; text-align: left;
+            background: var(--surface);
+            padding: 52px 60px;
+        }
+        .title-slide::after {
+            content: '';
+            position: absolute; right: 0; top: 0; bottom: 0; width: 420px;
+            background: linear-gradient(135deg, transparent 0%, rgba(163,31,52,0.06) 50%, rgba(201,168,76,0.08) 100%);
+            pointer-events: none;
+        }
+        .title-eyebrow {
+            font-family: var(--mono); font-size: 14px; font-weight: 600;
+            color: var(--mit-red); letter-spacing: 3px; text-transform: uppercase;
+            margin-bottom: 20px; display: flex; align-items: center; gap: 12px;
+        }
+        .title-eyebrow::before {
+            content: ''; display: inline-block; width: 40px; height: 2px; background: var(--mit-red);
+        }
+        .title-slide h1 {
+            font-size: 74px; font-weight: 800; color: var(--text);
+            line-height: 1.1; letter-spacing: -2px; margin-bottom: 24px;
+        }
+        .title-slide h1 span { color: var(--mit-red); }
+        .title-divider { width: 80px; height: 3px; background: var(--gold); margin: 24px 0 28px; }
+        .title-subtitle {
+            font-size: 24px; font-weight: 400; color: var(--text-muted);
+            line-height: 1.6; margin-bottom: 40px; max-width: 700px;
+        }
+        .title-tech {
+            font-family: var(--mono); font-size: 15px; color: var(--blue-hi);
+            background: rgba(74,124,255,0.08); border: 1px solid rgba(74,124,255,0.2);
+            padding: 10px 18px; border-radius: 3px; display: inline-block; margin-bottom: 40px;
+        }
+        .title-meta { display: flex; gap: 48px; padding-top: 32px; border-top: 1px solid var(--border-light); }
+        .meta-item { display: flex; flex-direction: column; }
+        .meta-item span   { font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--mit-red); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; }
+        .meta-item strong { font-size: 24px; font-weight: 700; color: var(--text); }
+
+        /* ── Badges ── */
+        .badge {
+            font-family: var(--mono); font-size: 17px; font-weight: 600;
+            padding: 5px 14px; border-radius: 2px; display: inline-block; margin-bottom: 6px;
+            background: rgba(163,31,52,0.12); color: #F87171; border: 1px solid rgba(163,31,52,0.3);
+        }
+        .badge.blue   { background: rgba(74,124,255,0.12); color: #93C5FD; border-color: rgba(74,124,255,0.3); }
+        .badge.green  { background: rgba(45,190,108,0.12); color: #6EE7B7;  border-color: rgba(45,190,108,0.3); }
+        .badge.gold   { background: rgba(201,168,76,0.12); color: #FCD34D;  border-color: rgba(201,168,76,0.3); }
+        .badge.red    { background: rgba(163,31,52,0.12);  color: #F87171;  border-color: rgba(163,31,52,0.3); }
+
+        .hl { color: #6EE7B7; font-weight: 700; }
+
+        /* ── Code Block ── */
+        .code-block {
+            background: #040810; border: 1px solid var(--border);
+            border-left: 3px solid var(--gold);
+            border-radius: 3px; padding: 14px 18px;
+            font-family: var(--mono); color: #CBD5E1;
+            white-space: pre-wrap; line-height: 1.6; font-size: 16px;
+            overflow: hidden; margin-top: 12px;
+        }
+        .cc { color: #4A5D7E; }
+
+        /* ── Pipeline ── */
+        .pipe-wrap {
+            display: flex; flex-direction: column; height: 100%;
+            justify-content: center; align-items: center; gap: 10px; padding: 4px;
+        }
+        .pipe-row { display: flex; width: 100%; justify-content: center; align-items: center; gap: 14px; }
+        .pblock {
+            background: #070E1C; border: 1px solid var(--border-light);
+            border-top: 3px solid var(--mit-red);
+            border-radius: 3px; padding: 14px 18px;
+            text-align: center; flex: 1; font-weight: 600; font-size: 21px; color: var(--text);
+        }
+        .pblock.b  { border-top-color: var(--blue-hi);  color: #93C5FD; }
+        .pblock.g  { border-top-color: var(--success);  color: #6EE7B7; background: rgba(45,190,108,0.05); }
+        .pblock.y  { border-top-color: var(--gold);     color: #FCD34D; }
+        .pblock.s  { border-top-color: #a855f7;         color: #D8B4FE; }
+        .pblock span { font-size: 15px; font-weight: 400; color: var(--text-muted); display: block; margin-top: 4px; }
+        .parr { color: var(--text-muted); font-size: 22px; margin: 2px 0; }
+
+        /* ── Table ── */
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        th {
+            background: rgba(163,31,52,0.15); color: var(--text);
+            padding: 10px 12px; text-align: left; font-size: 17px; font-weight: 700;
+            border-bottom: 2px solid var(--mit-red); font-family: var(--mono); letter-spacing: 0.5px;
+        }
+        td { padding: 8px 12px; border-bottom: 1px solid var(--border); color: var(--text); font-size: 16px; font-weight: 400; word-break: keep-all; line-height: 1.4; }
+        .sw-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+        .sw-tag {
+            background: rgba(74,124,255,0.08); border: 1px solid rgba(74,124,255,0.2);
+            color: var(--text-muted); padding: 5px 12px; border-radius: 2px;
+            font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 7px;
+        }
+
+        /* ── Image Layouts ── */
+        .img-grid-4 { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 8px; width: 100%; height: 100%; }
+        .img-layout-3 { display: flex; flex-direction: column; gap: 8px; width: 100%; height: 100%; }
+        .img-layout-3 .top-img { flex: 1.5; border-radius: 2px; overflow: hidden; border: 1px solid var(--border); }
+        .img-layout-3 .top-img img { width: 100%; height: 100%; object-fit: cover; }
+        .img-layout-3 .bot-row { display: flex; gap: 8px; flex: 1; }
+        .img-layout-3 .bot-row .mbox { border-radius: 2px; flex: 1; }
+        .img-layout-3 .bot-row .mbox img { object-fit: cover; }
+        .mbox {
+            background: #04080E; border: 1px solid var(--border);
+            border-radius: 2px; overflow: hidden;
+            display: flex; align-items: center; justify-content: center;
+            width: 100%; height: 100%; position: relative;
+        }
+        .mbox img, .mbox video { width: 100%; height: 100%; object-fit: contain; }
+
+        /* ── Info Panel ── */
+        .info-panel {
+            background: rgba(201,168,76,0.07); border: 1px solid rgba(201,168,76,0.25);
+            border-radius: 3px; padding: 14px 20px; margin-top: 14px;
+        }
+        .info-panel h4 { color: var(--gold); margin-bottom: 8px; font-size: 20px; font-family: var(--mono); }
+        .info-panel p  { font-size: 21px; color: var(--text-muted); }
+
+        /* ── Animation Canvas ── */
+        #animation-canvas {
+            width: 100%; height: 100%;
+            background: #04080E; border-radius: 2px;
+            position: relative; overflow: hidden;
+            border: 1px solid var(--border); cursor: pointer;
+        }
+
+        /* ── Click Reveal ── */
+        .step-item { opacity: 0; transform: translateY(14px); transition: opacity 0.45s ease, transform 0.45s ease; }
+        .step-item.active { opacity: 1; transform: translateY(0); }
+        .click-hint {
+            position: absolute; bottom: 18px; right: 28px;
+            font-family: var(--mono); font-size: 14px; font-weight: 600;
+            color: var(--gold); letter-spacing: 1px;
+            animation: blink 1.5s infinite; pointer-events: none; z-index: 100;
+        }
+        @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.25;} }
+
+        /* ── 배경 그리드 패턴 (미세한 격자) ── */
+        .slide::after {
+            content: '';
+            position: absolute; inset: 0;
+            background-image:
+                linear-gradient(rgba(74,124,255,0.025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(74,124,255,0.025) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none; z-index: 0;
+        }
+        .title-slide::after {
+            background-image: none;
+            background: linear-gradient(135deg, transparent 0%, rgba(163,31,52,0.06) 50%, rgba(201,168,76,0.08) 100%);
+            pointer-events: none; z-index: 0;
+        }
+    </style>
+</head>
+<body>
+
+<!-- =========== SLIDE 0: Title =========== -->
+<div class="slide title-slide">
+    <div class="title-eyebrow">Robotics &amp; Autonomous Systems — Portfolio</div>
+    <h1>자율주행 맹도견<br><span>로봇</span> 아키텍처</h1>
+    <div class="title-divider"></div>
+    <p class="title-subtitle">aicar 컴퓨터 기반 31GB 오프라인 강화학습 및<br>다차원 센서 퓨전 자율주행 시스템 구현</p>
+    <div class="title-tech">ROS 2 Humble &nbsp;·&nbsp; MobileNetV3 + LSTM &nbsp;·&nbsp; ONNX Runtime &nbsp;·&nbsp; Cartographer SLAM</div>
+    <div class="title-meta">
+        <div class="meta-item step-item"><span>Lead Developer</span><strong>j2w</strong></div>
+        <div class="meta-item step-item"><span>Project Type</span><strong>단독 연구 개발</strong></div>
+        <div class="meta-item step-item"><span>Duration</span><strong>2개월 Intensive</strong></div>
+    </div>
+</div>
+
+<!-- =========== SLIDE 1/14: Background =========== -->
+<div class="slide">
+    <div class="header">
+        <div class="header-left">
+            <span class="slide-label">Background</span>
+            <h2>연구 배경 및 개발 범위 조정</h2>
+        </div>
+        <span class="slide-num">01 / 14</span>
+    </div>
+    <div class="content">
+        <div class="col">
+            <div class="card step-item">
+                <h3><i class="fa-solid fa-bullseye"></i> 초기 기획 및 제약 분석</h3>
+                <p>시각장애인 보행 보조를 위한 비전 언어 모델(VLM) 통합형 맹도견을 초기 목표로 설정하였으나, 단일 연구자 체제 및 2개월 기한 내 상용 수준 멀티모달 로봇 구축에 물리적 자원 제약이 존재함을 식별하였습니다.</p>
+            </div>
+            <div class="card blue-accent step-item">
+                <h3><i class="fa-solid fa-compress"></i> 전략적 목표 집중 (Pivot)</h3>
+                <p>기술적 실현 가능성을 극대화하기 위해 <span class="hl">'다차원 센서 퓨전 기반 오프라인 강화학습 자율주행 및 동적 장애물 회피 로직'</span> 구현으로 연구 역량을 집중하였습니다. 기존 Costmap 기반 내비게이션의 연산 지연 한계 극복이 주요 목표입니다.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =========== SLIDE 2/14: HW BOM =========== -->
+<div class="slide">
+    <div class="header">
+        <div class="header-left">
+            <span class="slide-label">System Spec</span>
+            <h2>하드웨어 제원 및 개발 환경</h2>
+        </div>
+        <span class="slide-num">02 / 14</span>
+    </div>
+    <div class="content">
+        <div class="col" style="flex:1.45;">
+            <div class="card step-item" style="justify-content:flex-start;padding-top:18px;">
+                <table>
+                    <colgroup><col style="width:22%;"><col style="width:68%;"><col style="width:10%;"></colgroup>
+                    <tr><th>분류</th><th>컴포넌트 모델</th><th>수량</th></tr>
+                    <tr><td><strong>SBC (메인)</strong></td><td>Raspberry Pi 4 Model B (4GB RAM)</td><td>1</td></tr>
+                    <tr><td><strong>MCU (서브)</strong></td><td>Arduino Uno + L293D 모터 쉴드</td><td>1</td></tr>
+                    <tr><td><strong>Actuator</strong></td><td>Yellow TT Gear Motor (1:48 감속비)</td><td>4</td></tr>
+                    <tr><td><strong>LiDAR</strong></td><td>SLLidar C1 (360° 2D 스캔)</td><td>1</td></tr>
+                    <tr><td><strong>Sensors</strong></td><td>HC-SR04 초음파 / MPU-6050 3축 센서</td><td>3 / 1</td></tr>
+                    <tr><td><strong>Audio</strong></td><td>Britz BZ-A6 블루투스 스피커 (음성 안내)</td><td>1</td></tr>
+                    <tr><td><strong style="color:var(--gold);">Power</strong></td><td style="color:var(--gold);font-size:14px;">KLIFE 보조배터리(37Wh) × 2 — Pi용 / Arduino용 분리</td><td>2</td></tr>
+                </table>
+                <div style="display:flex;align-items:center;gap:10px;margin-top:14px;margin-bottom:8px;">
+                    <div style="width:3px;height:20px;background:var(--blue-hi);border-radius:1px;"></div>
+                    <h3 style="font-size:20px;margin-bottom:0;border:none;"><i class="fa-solid fa-laptop-code" style="color:var(--blue-hi);font-size:18px;"></i> Development Environment</h3>
+                </div>
+                <div class="sw-grid">
+                    <div class="sw-tag"><i class="fa-brands fa-ubuntu"></i> Ubuntu 22.04.5 LTS</div>
+                    <div class="sw-tag"><i class="fa-solid fa-robot"></i> ROS 2 Humble</div>
+                    <div class="sw-tag"><i class="fa-brands fa-python"></i> Python / C++</div>
+                    <div class="sw-tag"><i class="fa-solid fa-code"></i> Arduino IDE</div>
+                    <div class="sw-tag"><i class="fa-brands fa-git-alt"></i> Git / GitHub</div>
+                    <div class="sw-tag"><i class="fa-regular fa-comments"></i> 카카오톡, 네이트온</div>
+                </div>
+            </div>
+        </div>
+        <div class="col" style="flex:1;">
+            <div class="card step-item" style="padding:10px;justify-content:flex-start;background:#040810;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:0 4px;">
+                    <div style="width:3px;height:18px;background:var(--mit-red);"></div>
+                    <span style="font-family:var(--mono);font-size:14px;color:var(--text-muted);letter-spacing:1px;">기체 외형 — 4방위</span>
+                </div>
+                <div class="img-grid-4" style="flex:1;">
+                    <div class="mbox"><img src="로봇정면.jpg" alt="정면" onerror="this.src='https://placehold.co/300x200/070E1C/4A7CFF?text=FRONT'"></div>
+                    <div class="mbox"><img src="로봇후방.jpg" alt="후방" onerror="this.src='https://placehold.co/300x200/070E1C/4A7CFF?text=REAR'"></div>
+                    <div class="mbox"><img src="로봇좌측.jpg" alt="좌측" onerror="this.src='https://placehold.co/300x200/070E1C/4A7CFF?text=LEFT'"></div>
+                    <div class="mbox"><img src="로봇우측.jpg" alt="우측" onerror="this.src='https://placehold.co/300x200/070E1C/4A7CFF?text=RIGHT'"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =========== SLIDE 3/14: Circuit & Architecture =========== -->
+<div class="slide">
+    <div class="header">
+        <div class="header-left">
+            <span class="slide-label">HW Design</span>
+            <h2>하드웨어 설계 의의 및 분산 제어 아키텍처</h2>
+        </div>
+        <span class="slide-num">03 / 14</span>
+    </div>
+    <div class="content">
+        <div class="col">
+            <div class="card step-item">
+                <h3><i class="fa-solid fa-gears"></i> 하드웨어 설계 핵심 요소</h3>
+                <ul>
+                    <li class="step-item"><span class="badge blue">4륜 스키드 스티어링</span><br>좌우 바퀴 회전차를 이용한 4WD 방식. 전폭 70cm 이내 협소한 복도에서도 제자리 회전(Zero-Turn)이 가능합니다.</li>
+                    <li class="step-item"><span class="badge blue">저중심 콤팩트 설계</span><br>LiDAR 및 초음파 센서의 진동 노이즈를 최소화하기 위해 기체를 소형화하고 지상고를 낮추어 주행 안정성을 확보하였습니다.</li>
+                </ul>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card gold-accent step-item">
+                <h3><i class="fa-solid fa-network-wired"></i> 통신 병목 최소화 분산 아키텍처</h3>
+                <div class="pipe-wrap">
+                    <div class="pipe-row step-item">
+                        <div class="pblock b" style="font-size:22px;">메인 프로세서 (Raspberry Pi 4)<br><span>SLAM &amp; Nav2 연산 처리</span></div>
+                    </div>
+                    <i class="fa-solid fa-arrow-down parr step-item"></i>
+                    <div class="pipe-row step-item" style="justify-content:center;">
+                        <div class="pblock g" style="flex:0.85;font-size:20px;">Serial 통신 /dev/ttyACM0<br><span>정형화 패킷 "C,f" 포맷 전송</span></div>
+                    </div>
+                    <i class="fa-solid fa-arrow-down parr step-item"></i>
+                    <div class="pipe-row step-item">
+                        <div class="pblock y" style="font-size:22px;">서브 컨트롤러 (Arduino Uno)<br><span>실시간 모터 PWM &amp; 센서 데이터 폴링</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =========== SLIDE 4/14: Memory Optimization =========== -->
+<div class="slide" id="slide-memory">
+    <div class="header">
+        <div class="header-left">
+            <span class="slide-label">OS Tuning</span>
+            <h2>운영체제 및 커널 메모리 최적화 성과</h2>
+        </div>
+        <span class="slide-num">04 / 14</span>
+    </div>
+    <div class="content">
+        <div class="col">
+            <div class="card step-item">
+                <h3><i class="fa-solid fa-memory"></i> 엣지 디바이스 자원 관리 전략</h3>
+                <p>4GB RAM 환경에서 ROS 2와 딥러닝 추론 시스템을 병렬 구동하기 위한 OS 커널 튜닝을 수행하였습니다.</p>
+                <ul style="margin-top:18px;">
+                    <li class="step-item"><strong>ZRAM 최적화:</strong> 디스크 기반 SWAP을 제거하고 <code style="font-family:var(--mono);color:var(--gold);">ALGO=lz4</code>, <code style="font-family:var(--mono);color:var(--gold);">PERCENT=25</code> 압축 알고리즘을 적용하였습니다.</li>
+                    <li class="step-item"><strong>성능 개선 지표:</strong> I/O 응답 지연율이 기존 <strong style="color:var(--danger);">120ms</strong>에서 <span class="hl">12ms로 약 90% 개선</span>되었으며, 프레임 드랍 현상을 해소하였습니다.</li>
+                </ul>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card green-accent step-item">
+                <div style="position:relative;width:100%;height:100%;min-height:240px;">
+                    <canvas id="memoryChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =========== SLIDE 5/14: ROS2 Topic Network =========== -->
+<div class="slide">
+    <div class="header">
+        <div class="header-left">
+            <span class="slide-label">Communication</span>
+            <h2>ROS 2 통신 네트워크 및 데이터 위상</h2>
+        </div>
+        <span class="slide-num">05 / 14</span>
+    </div>
+    <div class="content">
+        <div class="col">
+            <div class="card step-item">
+                <div class="pipe-wrap">
+                    <div class="pipe-row">
+                        <div class="pblock s step-item" style="font-size:22px;">SLLidar<br><span style="font-size:16px;">/scan</span></div>
+                        <div class="pblock s step-item" style="font-size:22px;">Pi Camera<br><span style="font-size:16px;">/image_raw</span></div>
+                        <div class="pblock s step-item" style="font-size:22px;">MPU + Encoder<br><span style="font-size:16px;">/odom</span></div>
+                    </div>
+                    <div class="pipe-row step-item" style="justify-content:space-around;">
+                        <i class="fa-solid fa-arrow-down parr"></i>
+                        <i class="fa-solid fa-arrow-down parr"></i>
+                        <i class="fa-solid fa-arrow-down parr"></i>
+                    </div>
+                    <div class="pipe-row step-item">
+                        <div class="pblock b" style="font-size:25px;padding:22px;border-top-width:4px;">
+                            자율주행 통합 제어 (Master Node)<br>
+                            <span style="font-size:19px;color:var(--text);">MobileNetV3 + LSTM 추론 엔진</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-arrow-down parr step-item"></i>
+                    <div class="pipe-row step-item">
+                        <div class="pblock g" style="font-size:23px;border-top-color:#4ade80;color:#4ade80;">
+                            /cmd_vel &nbsp;(Motor Control Twist)
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =========== SLIDE 6/14: TF Tree =========== -->
+<div class="slide">
+    <div class="header">
+        <div class="header-left">
+            <span class="slide-label">Kinematics</span>
+            <h2>기구학 제원 및 좌표계(TF) 설계</h2>
+        </div>
+        <span class="slide-num">06 / 14</span>
+    </div>
+    <div class="content">
+        <div class="col">
+            <div class="card step-item">
+                <h3><i class="fa-solid fa-ruler-combined"></i> 기구학적 제원</h3>
+                <ul>
+                    <li class="step-item"><strong>전장(L):</strong> 0.27m — Nav2 Footprint 기준 설계치</li>
+                    <li class="step-item"><strong>윤거:</strong> 0.15m &nbsp;/&nbsp; <strong>축거:</strong> 0.13m &nbsp;/&nbsp; <strong>구동륜:</strong> 직경 0.066m (1틱 ≈ 0.01036m)</li>
+                    <li class="step-item"><span class="hl">슬립 보정 (Slip Factor):</span> 실내 저마찰 바닥 주행 오차 보정을 위해 슬립 계수 <code style="font-family:var(--mono);color:var(--gold);">0.95</code>를 수학적으로 융합하였습니다.</li>
+                </ul>
+            </div>
+            <div class="card blue-accent step-item">
+                <h3><i class="fa-solid fa-project-diagram"></i> Transform (TF) Tree</h3>
+                <p style="font-size:28px;font-weight:700;text-align:center;margin-top:14px;color:var(--text);font-family:var(--mono);letter-spacing:1px;">
+                    <span style="color:var(--mit-red);">map</span>
+                    <span style="color:var(--text-muted);margin:0 14px;">→</span>
+                    <span style="color:var(--blue-hi);">odom</span>
+                    <span style="color:var(--text-muted);margin:0 14px;">→</span>
+                    <span style="color:var(--gold);">base_link</span>
+                    <span style="color:var(--text-muted);margin:0 14px;">→</span>
+                    <span style="color:var(--success);">laser</span>
+                </p>
+                <p style="font-size:19px;margin-top:16px;text-align:center;color:var(--text-muted);">
+                    * laser 프레임 — base_link 대비 z축 고도 오프셋 <strong style="color:var(--text);">0.15m</strong> 적용.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =========== SLIDE 7/14: AI Architecture =========== -->
+<div class="slide">
+    <div class="header">
+        <div class="header-left">
+            <span class="slide-label">AI Architecture</span>
+            <h2>인공지능 백본 아키텍처 분석 및 최종 채택</h2>
+        </div>
+        <span class="slide-num">07 / 14</span>
+    </div>
+    <div class="content">
+        <div class="col">
+            <div class="card step-item">
+                <h3><i class="fa-solid fa-brain"></i> 대규모 모델 한계 분석 및 경량화 모델 도입</h3>
+                <p style="font-size:22px;">라즈베리파이 4 기반의 엣지(Edge) 연산 환경에서 실시간성을 확보하기 위한 아키텍처 결정 프로세스입니다.</p>
+                <ul style="margin-top:16px;">
+                    <li class="step-item"><span class="badge red">Diffusion Policy 분석</span><br>반복적 연산으로 인해 제어 루프에서 지연이 발생하며, 동적 제어 안정성이 크게 저하됨을 확인하였습니다.</li>
+                    <li class="step-item"><span class="badge red">Vision Transformer 분석</span><br>거대한 파라미터 구조로 인한 메모리 초과(OOM) 현상이 발생하였습니다.</li>
+                    <li class="step-item"><span class="badge green">최종 채택 — MobileNetV3 + LSTM</span><br>Hugging Face LeRobot 기반으로, 시각 특징 고속 추출과 단기 주행 궤적 기억을 결합한 최적화 모델 구축에 성공하였습니다.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =========== SLIDE 8/14: Reward Engineering =========== -->
+<div class="slide">
+    <div class="header">
+        <div class="header-left">
+            <span class="slide-label">RL Design</span>
+            <h2>강화학습 보상 설계(Reward Design) 및 최적화</h2>
+        </div>
+        <span class="slide-num">08 / 14</span>
+    </div>
+    <div class="content">
+        <div class="col">
+            <div class="card step-item">
+                <h3><i class="fa-solid fa-scale-balanced"></i> Reward Hacking 방지 및 정책 고도화</h3>
+                <p style="font-size:22px;">충돌 페널티 회피를 위해 로봇이 제자리에서 정지하는 현상(Freezing)을 식별하고 개선하였습니다.</p>
+                <ul style="margin-top:16px;">
+                    <li class="step-item"><span class="badge blue">목표 지향적 보상 함수</span><br>전방 가용 공간이 확보된 상태에서 감속 또는 정지 시, 강한 음의 보상(페널티)을 부여하여 지속적인 전진 기동을 유도합니다.</li>
+                    <li class="step-item"><span class="badge blue">합산 로그 기반 검증</span><br>매 Epoch마다 누적 양의 보상 및 페널티 발생 횟수를 터미널 로그로 출력하여 정책 수렴 여부를 정량적으로 모니터링합니다.</li>
+                    <li class="step-item"><span class="badge blue">Early Stopping</span><br>Loss 개선이 임계치 이하로 지속될 경우 조기 종료를 수행하여 과적합(Overfitting)을 방지합니다.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =========== SLIDE 9/14: Data Pipeline =========== -->
+<div class="slide">
+    <div class="header">
+        <div class="header-left">
+            <span class="slide-label">Data Engineering</span>
+            <h2>고품질 주행 데이터 파이프라인 및 인코딩</h2>
+        </div>
+        <span class="slide-num">09 / 14</span>
+    </div>
+    <div class="content">
+        <div class="col" style="flex:1.2;">
+            <div class="card step-item" style="justify-content:flex-start;padding-top:18px;">
+                <h3 style="font-size:26px;"><i class="fa-solid fa-database"></i> 31GB 멀티모달 주행 데이터 수집</h3>
+                <div class="pipe-wrap" style="flex:1;gap:8px;margin-top:6px;">
+                    <div class="pipe-row step-item">
+                        <div class="pblock s" style="font-size:19px;padding:10px;">정수기 왕복 코스 50회<br><span>(모니터 장애물 회피 수동 조작)</span></div>
+                        <i class="fa-solid fa-plus" style="color:var(--text-muted);font-size:16px;"></i>
+                        <div class="pblock s" style="font-size:19px;padding:10px;">자유 주행 10회 (각 5분)<br><span>(복도/강의실/창고 동적 환경)</span></div>
+                    </div>
+                    <i class="fa-solid fa-arrow-down parr step-item"></i>
+                    <div class="pipe-row step-item">
+                        <div class="pblock g" style="font-size:19px;">ros2 bag 레코딩<br><span>카메라·라이다·초음파·MPU·엔코더 완벽 동기화</span></div>
+                    </div>
+                </div>
+                <div class="code-block step-item" style="margin-top:10px;font-size:16px;">
+<span class="cc"># CSV → Tensor 변환 (데이터 인코딩 핵심부)</span>
+def __getitem__(self, idx):
+    sensors = self.df.iloc[idx][['scan_0'...'scan_7','sonar_l',...]].values
+    return image_tensor, torch.tensor(sensors, dtype=torch.float32), targets</div>
+            </div>
+        </div>
+        <div class="col" style="flex:1;">
+            <div class="card step-item" style="padding:8px;background:#040810;border-left-color:var(--blue-hi);">
+                <div class="img-layout-3">
+                    <div class="top-img"><img src="로봇주행사진1.jpg" alt="주행사진1" onerror="this.src='https://placehold.co/600x280/070E1C/4A7CFF?text=Driving+Photo+1'"></div>
+                    <div class="bot-row">
+                        <div class="mbox"><img src="로봇주행사진2.jpg" alt="주행사진2" onerror="this.src='https://placehold.co/300x200/070E1C/2DBE6C?text=Photo+2'"></div>
+                        <div class="mbox"><img src="로봇주행사진3.jpg" alt="주행사진3" onerror="this.src='https://placehold.co/300x200/070E1C/2DBE6C?text=Photo+3'"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =========== SLIDE 10/14: SLAM =========== -->
+<div class="slide">
+    <div class="header">
+        <div class="header-left">
+            <span class="slide-label">SLAM</span>
+            <h2>Cartographer 2D SLAM 공간 매핑 시스템</h2>
+        </div>
+        <span class="slide-num">10 / 14</span>
+    </div>
+    <div class="content">
+        <div class="col">
+            <div class="card step-item">
+                <h3><i class="fa-solid fa-map-marked-alt"></i> 실내 환경 정밀 지도화(Mapping) 프로세스</h3>
+                <ul style="margin-top:14px;">
+                    <li class="step-item">Google Cartographer 알고리즘 적용 및 <code style="font-family:var(--mono);color:var(--gold);">.lua</code> 튜닝 파라미터를 통해 고정밀도 SLAM 환경을 구축하였습니다.</li>
+                    <li class="step-item">RViz2 인터페이스를 연동하여 Occupancy Grid Map 생성 과정을 실시간으로 모니터링하고 오차를 보정하였습니다.</li>
+                    <li class="step-item"><code style="font-family:var(--mono);color:var(--gold);">map_saver_cli</code>를 활용하여 맵 데이터의 영구 저장을 완료하였습니다.</li>
+                </ul>
+                <div class="info-panel">
+                    <h4><i class="fa-solid fa-sliders"></i> &nbsp;맵 파라미터 적용치</h4>
+                    <p>Resolution: <strong style="color:var(--text);">0.05m</strong> &nbsp;|&nbsp; Origin: <strong style="color:var(--text);">[-4.66, -3.29, 0]</strong> &nbsp;|&nbsp; Mode: <strong style="color:var(--text);">trinary</strong></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =========== SLIDE 11/14: Edge Inference =========== -->
+<div class="slide">
+    <div class="header">
+        <div class="header-left">
+            <span class="slide-label">Deployment</span>
+            <h2>모델 경량화 및 엣지(Edge) 추론 환경 포팅</h2>
+        </div>
+        <span class="slide-num">11 / 14</span>
+    </div>
+    <div class="content">
+        <div class="col">
+            <div class="card step-item">
+                <h3><i class="fa-solid fa-microchip"></i> ONNX Runtime 기반 저지연 자율주행 추론</h3>
+                <p style="margin-bottom:8px;">aicar 컴퓨터에서 학습된 대용량 PyTorch 모델(.pth)을 엣지 디바이스에 최적화하여 이식합니다.</p>
+                <div class="pipe-wrap" style="flex:1;gap:14px;margin-top:8px;">
+                    <div class="pipe-row step-item">
+                        <div class="pblock" style="font-size:23px;border-top-color:var(--danger);color:#FCA5A5;">
+                            aicar 컴퓨터<br><span style="font-size:18px;color:var(--text-muted);">고성능 PyTorch 학습 모델</span>
+                        </div>
+                        <i class="fa-solid fa-arrow-right parr"></i>
+                        <div class="pblock y" style="font-size:23px;">
+                            ONNX Format 변환<br><span style="font-size:18px;color:var(--text-muted);">프레임워크 의존성 제거</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-arrow-down parr step-item"></i>
+                    <div class="pipe-row step-item">
+                        <div class="pblock b" style="font-size:25px;padding:24px;border-top-width:4px;">
+                            라즈베리파이 4 (Edge 디바이스)<br>
+                            <span style="font-size:20px;color:var(--text);">ONNX Runtime 1-Thread 할당 → <strong style="color:#4ade80;">12.5 FPS</strong> 안정적 도출</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =========== SLIDE 12/14: Virtual Safety Tube =========== -->
+<div class="slide" id="slide-tube">
+    <div class="header">
+        <div class="header-left">
+            <span class="slide-label">Safety Algorithm</span>
+            <h2>가상 안전 터널(Virtual Safety Tube) 제어 알고리즘</h2>
+        </div>
+        <span class="slide-num">12 / 14</span>
+    </div>
+    <div class="content">
+        <div class="col" style="flex:1.2;">
+            <div class="card step-item">
+                <h3><i class="fa-solid fa-vector-square"></i> 기구학 기반 수학적 데이터 필터링</h3>
+                <p>측면 벽 데이터를 정면 장애물로 오인하여 급정거하는 오작동을 수학적 필터링으로 개선하였습니다.</p>
+                <ul style="margin-top:18px;">
+                    <li class="step-item">전폭(21.6cm) + 안전 여유(4.0cm) = <strong style="color:var(--gold);">안전 요구 폭 25.6cm (반경 12.8cm)</strong> 도출.</li>
+                    <li class="step-item">
+                        조건: <span class="hl" style="font-family:var(--mono);">|y| = |r · sin(θ)| &lt; 0.128m</span><br>
+                        위 조건을 충족하는 전방 터널 내부의 LiDAR 포인트 클라우드만 실제 위협 요소로 필터링하여 주행의 유창성을 확보합니다.
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="col" style="flex:1;">
+            <div class="card step-item" style="padding:0;overflow:hidden!important;border:1px solid var(--blue-hi);border-left:4px solid var(--blue-hi);">
+                <div id="animation-canvas">
+                    <div style="position:absolute;width:100%;text-align:center;top:14px;font-family:var(--mono);font-weight:600;color:var(--text-muted);font-size:14px;z-index:10;letter-spacing:2px;">VIRTUAL SAFETY TUBE — SIMULATION</div>
+                    <div style="position:absolute;width:1px;height:100%;background:rgba(74,124,255,0.15);left:50%;"></div>
+                    <div style="position:absolute;width:52px;height:52px;background:var(--danger);border-radius:2px;top:80px;left:28px;opacity:0.85;"></div>
+                    <div style="position:absolute;width:52px;height:52px;background:var(--danger);border-radius:2px;top:200px;right:28px;opacity:0.85;"></div>
+                    <div id="virtual-tube" style="position:absolute;width:106px;height:190px;background:rgba(74,124,255,0.08);border-left:2px dashed #4A7CFF;border-right:2px dashed #4A7CFF;bottom:80px;left:50%;transform:translateX(-50%);z-index:1;"></div>
+                    <div id="ani-robot" style="position:absolute;width:72px;height:96px;background:var(--gold);border-radius:3px;bottom:20px;left:50%;transform:translateX(-50%);z-index:2;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:15px;font-weight:700;color:#000;text-align:center;line-height:1.3;">ROBOT<br>1호기</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =========== SLIDE 13/14: Failsafe =========== -->
+<div class="slide">
+    <div class="header">
+        <div class="header-left">
+            <span class="slide-label">Failsafe</span>
+            <h2>페일세이프(Failsafe): 자가 복구 및 예외 처리 로직</h2>
+        </div>
+        <span class="slide-num">13 / 14</span>
+    </div>
+    <div class="content">
+        <div class="col">
+            <div class="card step-item">
+                <h3><i class="fa-solid fa-shield-halved"></i> 시스템 안정성 확보를 위한 다중 방어 설계</h3>
+                <p>자율주행 중 발생할 수 있는 센서 사각지대, 연산 오류 및 물리적 고립(Stuck) 상태를 극복하기 위한 안전 설계입니다.</p>
+                <ul style="margin-top:22px;">
+                    <li class="step-item">
+                        <span class="badge red" style="font-size:19px;">하드웨어 인터럽트 제동</span><br>
+                        지상 3cm 높이의 초음파 센서가 5cm 이내 물체 감지 시, <strong style="color:var(--text);">메인 SBC의 명령을 무시하고 MCU 단에서 모터 구동을 즉각 차단</strong>합니다.
+                    </li>
+                    <li class="step-item">
+                        <span class="badge gold" style="font-size:19px;">ZeroDivision 예방 필터링</span><br>
+                        Nav2 연산 과정에서 발생할 수 있는 0으로 나누기 오류를 방지하기 위해, 가상의 공분산(Covariance) 매트릭스를 시스템에 명시적으로 주입합니다.
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =========== SLIDE 14/14: Conclusion =========== -->
+<div class="slide" id="slide-final">
+    <div class="header">
+        <div class="header-left">
+            <span class="slide-label">Conclusion</span>
+            <h2>실전 주행 성과 및 향후 연구 방향(Future Work)</h2>
+        </div>
+        <span class="slide-num">14 / 14</span>
+    </div>
+    <div class="content">
+        <div class="col" style="flex:1.2;">
+            <div class="card step-item" style="height:100%;">
+                <h3><i class="fa-solid fa-flag-checkered"></i> 프로젝트 성과 요약</h3>
+                <ul style="margin-bottom:22px;">
+                    <li class="step-item">하드웨어 및 OS의 물리적 병목(OOM, I/O Delay)을 개선하고, 엣지 디바이스에서 실시간 동작하는 End-to-End 자율주행 파이프라인을 구축하였습니다.</li>
+                    <li class="step-item">MobileNetV3 기반 시각 인지와 LSTM 구조를 융합한 초경량 온디바이스(On-Device) 자율주행 모델 이식에 성공하였습니다.</li>
+                </ul>
+                <h3 class="step-item" style="margin-top:4px;"><i class="fa-solid fa-chart-line"></i> VLA 모델 융합 로드맵</h3>
+                <ul class="step-item" style="margin-top:12px;">
+                    <li>스마트폰 음성 입력 <span style="color:var(--gold);font-family:var(--mono);margin:0 8px;">→</span> EXAONE LLM (목적지 JSON Waypoint 추론) <span style="color:var(--gold);font-family:var(--mono);margin:0 8px;">→</span> 로컬 자율 회피 주행이 연계된 하이브리드 VLA 아키텍처 연구 진행 예정.</li>
+                </ul>
+            </div>
+        </div>
+        <div class="col" style="flex:1;">
+            <div class="mbox step-item" style="height:100%;border:1px solid var(--blue-hi);background:#040810;position:relative;">
+                <video id="final-video" src="로봇자율주행영상.mp4" controls autoplay muted loop playsinline style="width:100%;height:100%;object-fit:contain;z-index:2;"></video>
+                <div id="video-error-text" style="position:absolute;width:100%;text-align:center;color:var(--danger);font-size:21px;font-weight:700;z-index:1;display:none;">
+                    <i class="fa-solid fa-triangle-exclamation"></i><br>동영상 재생 불가<br>
+                    <span style="font-size:15px;color:var(--text-muted);font-weight:400;">('로봇자율주행영상.mp4' 파일 확인 요망)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let memChart = null, robotAniFrame = null;
+
+    document.addEventListener("DOMContentLoaded", () => {
+
+        /* ── Chart.js (Slide 4) ── */
+        const ctx = document.getElementById('memoryChart');
+        if (ctx) {
+            memChart = new Chart(ctx.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['기본 환경', 'ZRAM lz4 최적화', 'SWAP 완전 제거'],
+                    datasets: [{
+                        label: 'I/O 응답 지연 (ms)',
+                        data: [0, 0, 0],
+                        backgroundColor: 'rgba(74,124,255,0.2)',
+                        borderColor:     'rgba(74,124,255,0.6)',
+                        borderWidth: 2, borderRadius: 3
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, max: 150,
+                             grid: { color: 'rgba(29,45,74,0.8)' },
+                             ticks: { color: '#7A8DB5', font: { size: 15, family: "'IBM Plex Mono'" } } },
+                        x: { grid: { display: false },
+                             ticks: { color: '#7A8DB5', font: { size: 14, family: "'IBM Plex Sans'" } } }
+                    },
+                    plugins: { legend: { labels: { color: '#E8EEFF', font: { size: 16, family: "'IBM Plex Sans'" } } } }
+                }
+            });
+        }
+
+        /* ── 비디오 오류 ── */
+        const vid = document.getElementById('final-video');
+        if (vid) vid.addEventListener('error', () => {
+            document.getElementById('video-error-text').style.display = 'block';
+            vid.style.display = 'none';
+        });
+
+        /* ── Click Reveal ── */
+        document.querySelectorAll('.slide').forEach(slide => {
+            const steps = slide.querySelectorAll('.step-item');
+            if (!steps.length) return;
+
+            const hint = document.createElement('div');
+            hint.className = 'click-hint';
+            hint.innerHTML = 'CLICK TO REVEAL &nbsp;<i class="fa-solid fa-chevron-right"></i>';
+            slide.appendChild(hint);
+
+            let cur = 0;
+            slide.addEventListener('click', e => {
+                if (['VIDEO','A','BUTTON'].includes(e.target.tagName)) return;
+                if (cur < steps.length) {
+                    steps[cur].classList.add('active');
+                    if (slide.id === 'slide-memory') {
+                        memChart.data.datasets[0].data = [120, 45, 12];
+                        memChart.data.datasets[0].backgroundColor = ['rgba(217,64,64,0.8)', 'rgba(201,168,76,0.8)', 'rgba(45,190,108,0.9)'];
+                        memChart.data.datasets[0].borderColor     = ['#D94040','#C9A84C','#2DBE6C'];
+                        memChart.update({ duration: 1400, easing: 'easeOutQuart' });
+                    }
+                    if (slide.id === 'slide-tube' && !robotAniFrame) startRobotAnimation();
+                    cur++;
+                }
+                if (cur >= steps.length) hint.style.display = 'none';
+            });
+        });
+    });
+
+    /* ── Slide 12 Virtual Tube 애니메이션 ── */
+    let aniY = 0;
+    function startRobotAnimation() {
+        const robot = document.getElementById('ani-robot');
+        const tube  = document.getElementById('virtual-tube');
+        function go() {
+            aniY += 1.1;
+            if (aniY > 360) aniY = -130;
+            robot.style.bottom = (20 + aniY) + 'px';
+            tube.style.bottom  = (125 + aniY) + 'px';
+            robotAniFrame = requestAnimationFrame(go);
+        }
+        go();
+    }
+</script>
+</body>
+</html>
