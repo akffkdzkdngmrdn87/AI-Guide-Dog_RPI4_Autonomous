@@ -5,6 +5,8 @@
 
 ## 🎬 자율주행 실증 데모 (Autonomous Driving in Action)
 https://github.com/user-attachments/assets/2be167cf-6864-4090-bf29-acb984c3d862
+<img width="360" height="203" alt="ex1" src="https://github.com/user-attachments/assets/6a85e7c3-e03f-4d72-abc0-9a65e0c6c57d" />
+
 
 ## 1. 프로젝트 일러두기 (Project Notice)
 
