@@ -1,7 +1,7 @@
 # Autonomous Guide Dog Robot
 **ROS 2 Multi-modal Sensor Fusion & End-to-End Autonomous Driving on Edge Device**
 
-[![DOI](https://zenodo.org/badge/1254341248.svg)](https://doi.org/10.5281/zenodo.20461774)
+https://doi.org/10.5281/zenodo.20482658
 
 ## 🎬 자율주행 실증 데모 (Autonomous Driving in Action)
 https://github.com/user-attachments/assets/2be167cf-6864-4090-bf29-acb984c3d862
