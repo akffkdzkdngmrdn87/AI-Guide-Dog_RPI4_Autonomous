@@ -43,5 +43,5 @@ python3 src/motor_bridge.py
 
 # 3. AI 자율주행 메인 노드 가동
 python3 src/autonomous_drive.py
-
+```
 <img width="360" height="203" alt="ex1" src="https://github.com/user-attachments/assets/6a85e7c3-e03f-4d72-abc0-9a65e0c6c57d" />
