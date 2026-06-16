@@ -25,7 +25,8 @@
 * **학습 서버 (AI Training Server):** NVIDIA GeForce RTX 4070 12GB VRAM 탑재 워크스테이션 - 딥러닝 모델(CNN, LLM)의 오프라인 학습을 전담합니다.
 
 ### 3. 센서 시스템 (Sensor System)
-* **2D 라이다 (LiDAR):** SLLidar (지상고 15cm 위치) - 2D 점군(Point Cloud) 데이터 기반 매핑 및 주요 장애물 회피에 사용됩니다. (제품명 : SLAMTEC RPLIDAR C1 LiDAR)
+* **2D 라이다 (LiDAR):** SLLidar (지상고 15cm 위치) - 2D 점군(Point Cloud) 데이터 기반 매핑 및 주요 장애물 회피에 사용됩니다.
+(제품명 : SLAMTEC RPLIDAR C1 LiDAR)
 * **관성 측정 장치 (IMU):** MPU-6050 - 스키드 스티어링 방식의 제자리 회전 시 발생하는 마찰 오차 및 방위각(Yaw) 보정에 활용됩니다.
 * **초음파 센서 (Ultrasonic):** HC-SR04 배열 3개 (지상고 3cm 위치) - 라이다의 스캔 평면 하단에 위치한 사각지대 장애물 탐지 및 긴급 제동(Emergency Brake) 목적으로 사용됩니다.
 * **광학식 엔코더 (Encoder):** 각 모터에 장착된 4개의 분해능 20 Ticks/Rev 엔코더를 통해 휠 오도메트리(Wheel Odometry)를 산출합니다.
